@@ -3,9 +3,23 @@ PieMenu widget for FreeCAD
 
 Quick customizable menus for FreeCAD.
 
-### Version 1.13 :
+### Version 1.14
 
-Major code refactoring by Ben-PH, thank you !
+See the [changelog](CHANGELOG.md) for technical details, fixes, and development notes.
+
+The **Icon Spacing** section below Shape offers independent **Packed** and **Equally spaced** choices for the **Inner Ring** and **Outer Ring**, saved per menu. Both default to the native, equally spaced layout. Packed icons sit next to each other starting at the top.
+
+Assign commands to a ring in the **Tools** tab using the **Inner** and **Outer** checkbox columns. Only one ring can be selected for each command; clearing both removes it from the menu. For the Pie shape, commands assigned to Outer appear in a second ring. Command names and preselect buttons are unavailable while outer commands are selected. Existing commands default to Inner. See the [illustrated inner and outer rings guide](#inner-and-outer-rings) below.
+
+PieMenus now show the built-in PieMenu logo when the center is otherwise empty, replacing the close ring. Click the logo to close the pie and open settings with that menu selected. The icon is hidden whenever accept/cancel controls or feature inputs occupy the center. The View menu retains its existing center behavior and never shows the settings icon.
+
+The former "Pie menu settings" entry has been renamed "PieMenu" and moved to the bottom of the "Edit" menu, after a separator.
+
+A newly created menu now inherits the PieMenu tab settings (shape, radius, button size, trigger mode, columns, shortcut display, etc.) of the previously created menu. Changing these settings for a menu therefore also changes the defaults used for the next new menu.
+
+A new "Add shortcut" button is available in the Tools tab, next to "Add separator". It creates a PieMenu button that executes a keyboard shortcut when clicked. In the dialog, you specify a name, an icon, and the key sequence to run (e.g., "CTRL + S" or a multi-key sequence). Shortcut entries are included when settings are exported or imported. Assigning a shortcut that is already in use displays the usual conflict warning.
+
+When a shortcut is shared by several workbench-associated menus, it opens the menu matching the active workbench.
 
 ### Version 1.12 :
 
@@ -44,7 +58,7 @@ Select size, shape, tools, individual shortcut for each PieMenu and/or a global 
 
 
 ### Installation
-PieMenu can be installed via the FreeCAD add-on manager. Once installed, you should find a new "Accessories" menu in the FreeCAD menu bar. 
+PieMenu can be installed via the FreeCAD add-on manager. Once installed, you should find a "PieMenu" entry at the bottom of the "Edit" menu in the FreeCAD menu bar. 
 
 ![image](https://github.com/Grubuntu/PieMenu/assets/56045316/c992fb79-9399-4174-9827-ae3de41b7025)
 
@@ -55,26 +69,7 @@ Or just add all files in a PieMenu directory in your FreeCAD Mod directory.
 
 ![Capture d’écran (20)](https://github.com/Grubuntu/PieMenu-Improved/assets/56045316/2acee710-2cee-42f3-ab3a-4e10c94d27af)
 
-Install path for FreeCAD modules depends on the operating system used.  
-To find where is the user's application data directory enter next command on FreeCAD Python console.
-
-```python
-App.getUserAppDataDir()
-```
-
-##### Examples:
-
-Linux:
-
-`/home/user/.local/share/FreeCAD/Mod/PieMenu/InitGui.py`
-
-macOS:
-
-`/Users/user_name/Library/Preferences/FreeCAD/Mod/PieMenu/InitGui.py`
-
-Windows:
-
-`C:\Users\user_name\AppData\Roaming\FreeCAD\Mod\PieMenu\InitGui.py`
+For platform-specific paths and the console command to locate your FreeCAD data folder, see the [manual installation reference](CHANGELOG.md#manual-installation-reference).
 
 ### Discussion
 FreeCAD forum thread: https://forum.freecad.org/viewtopic.php?t=84101
@@ -83,7 +78,7 @@ FreeCAD forum thread: https://forum.freecad.org/viewtopic.php?t=84101
 Thanks to all the work done by mdkus, triplus, looo, microelly.
 
 ### Usage
-Press the Tab key on the keyboard to invoke PieMenu or set shortcut via Accessories Menu
+Press the Tab key on the keyboard to invoke PieMenu or set shortcut via the Edit menu > "PieMenu"
 
 
 
@@ -103,14 +98,14 @@ A *ToolBar* is a set of existing shortcuts in FreeCAD, containing a set of tools
 
 It may be necessary to restart FreeCAD after installation and after the initial activation of PieMenu to ensure that the configuration is set up correctly.
 
-By default, the global shortcut to activate PieMenu is the 'TAB' key. However, if this does not work or if you wish to change it, you can access the Preferences via the "Accessories" menu > "General Preferences" tab > Global Shortcut.
+By default, the global shortcut to activate PieMenu is the 'TAB' key. However, if this does not work or if you wish to change it, you can access the Preferences via the "Edit" menu > "PieMenu" > "General Preferences" tab > Global Shortcut.
 
 You can assign a simple shortcut (e.g., a single key like 'A'), a composite shortcut (e.g., 'CTRL + Q'), or multi-key shortcuts (e.g., 'F, F').
 
 ## 2 – Create/modify a PieMenu :
 
 In case of a fresh installation, PieMenu will create 3 PieMenus (View, PartDesign, and Sketcher) with some common tools. 
-To create or modify other PieMenus, simply go to the "Preferences" (*QuickMenu* > Preferences or Accessories Menu > PieMenu Preferences).
+To create or modify other PieMenus, simply go to the "Preferences" (*QuickMenu* > Preferences or Edit Menu > PieMenu).
 
 The *QuickMenu* is the contextual menu displayed when clicking on the integrated button in the PieMenu (option to activate if needed in the 'Preferences'). 
 
@@ -149,7 +144,40 @@ Modify and adjust available settings (settings may vary depending on the PieMenu
 
 Check the desired tools to add them to your PieMenu tool list.
 You can move or delete tools using the buttons located below the tools list.
+Use the "Add separator" button to insert a visual separator between two groups of tools, and the "Add shortcut" button to create a button that replays a keyboard shortcut (name, icon and key sequence are set in a dialog).
 Tip: You can search for tools by their name in the search bar.
+
+#### Inner and outer rings
+
+For the **Pie** shape, commands can occupy two rings. Keep frequently used tools close to the center on the **Inner Ring**, and place additional commands on the **Outer Ring**.
+
+![Inner and outer pie-menu rings, comparing equally spaced icons with a packed outer ring](Resources/screenshots/inner-outer-rings.png)
+
+*Blue guides highlight the inner ring; orange guides highlight the outer ring. These guides are annotations added to the screenshots.*
+
+**Choose a ring for each command**
+
+1. Open **Edit → PieMenu** and select the menu you want to configure.
+2. In the **PieMenu** tab, set **Shape** to **Pie**.
+3. Open the **Tools** tab and find a command using the search box.
+4. Check **Inner** or **Outer** for that command. Selecting one automatically clears the other. Clear both to remove the command from this menu.
+
+The example below puts **Zoom In** on the inner ring and **Zoom Out** on the outer ring. Ring assignments are saved per menu; filtering the list keeps assignments for commands outside the search results.
+
+![Tools tab with the Inner and Outer checkbox columns highlighted for Zoom In and Zoom Out](Resources/screenshots/inner-outer-tools.png)
+
+**Choose how each ring is spaced**
+
+In the **PieMenu** tab, use **Icon Spacing** to set the rings independently:
+
+| Choice | Result |
+| --- | --- |
+| **Equally spaced** | Distributes icons around the full ring. This is the native pie-menu spacing and the default for both rings. |
+| **Packed** | Places icons next to each other, starting at the top and continuing clockwise. |
+
+![Icon Spacing controls showing an equally spaced inner ring and a packed outer ring](Resources/screenshots/icon-spacing-settings.png)
+
+Inner-ring packing also works without any outer commands. Spacing choices save per menu and are inherited when creating a new menu from the previous menu's settings. Command names and preselect buttons are unavailable when using an outer ring or a packed inner ring.
 
 ### 3) Context Tab: (Attention, this feature is not fully functional, there may be bugs)
 
@@ -291,7 +319,7 @@ Toggle mode for global shortcut : Pressing the global shortcut can toggle the Pi
 We can associate a workbench for each PieMenu : When you associate a workbench with a menu, it will be opened when you press the global shortcut.
 
 In the example below, the Draft workbench is associated with the "Snapping Tools" PieMenu: when the "Draft" workbench is active, the "Snapping Tools" PieMenu will open when the global shortcut key is pressed.
-> Open from menu Accessories->Pie menu settings.
+> Open from menu Edit->PieMenu.
 
 ![Capture d’écran (178)](https://github.com/Grubuntu/PieMenu/assets/56045316/b24a458e-2e67-4758-906a-238ff8ce08d7)
 
@@ -305,7 +333,7 @@ Quickly launch a tool with one key shortcut when a PieMenu is displayed
 
 ![Capture d’écran (173)](https://github.com/Grubuntu/PieMenu/assets/56045316/88752663-491a-47f4-9a5b-526b90606f86)
 
-You can enable them in the settings (from menu Accessories->Pie menu settings):
+You can enable them in the settings (from menu Edit->PieMenu):
 Enable and display them (or only enable them without displaying). You can set the font size.
 
 ![Capture d’écran (175)](https://github.com/Grubuntu/PieMenu/assets/56045316/fe63f92f-84ea-49c7-8c2c-f805434f8614)
@@ -362,4 +390,3 @@ You can set a single workbench in which the context will be triggered:
 You can export/import PieMenu settings.
 
 ![Capture d’écran (231)](https://github.com/user-attachments/assets/796c8694-5d5f-471f-8d68-06bb63b7053f)
-

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>window_icons</class>
+ <widget class="QWidget" name="window_icons">
+  <property name="visible"><bool>false</bool></property>
+  <layout class="QVBoxLayout" name="main_layout">
+   <item>
+    <widget class="QScrollArea" name="scroll_area">
+     <property name="widgetResizable"><bool>true</bool></property>
+     <widget class="QWidget" name="grid_widget">
+      <layout class="QGridLayout" name="grid_layout">
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="buttonLayoutIcons" stretch="0,1,0">
+     <item>
+      <widget class="QPushButton" name="buttonBrowse">
+       <property name="text"><string notr="true">Browse Icons Files...</string></property>
+       <property name="_translationContext_text" stdset="0"><string notr="true">PieMenuTab</string></property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="buttonLayoutIconsSpacer1"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeType"><enum>QSizePolicy::Expanding</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cancel_window_icons_button">
+       <property name="text"><string notr="true">Cancel</string></property>
+       <property name="_translationContext_text" stdset="0"><string notr="true">PieMenuTab</string></property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

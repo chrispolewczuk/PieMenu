@@ -1,5 +1,28 @@
 # CHANGELOG
 
+## 1.14
+
+- Remove duplicate entries from the stored menu list so each PieMenu appears only once in the settings dropdown.
+- Fix division by zero for Concentric / Star shapes when "Command for first circle" is unset.
+- Fix the existing-name check when creating or copying a PieMenu under Python 3.
+- Shortcut entries are included in settings exports and imports through their global PieMenu parameters.
+- Outer-ring placement adds a gap of 60% of the rendered icon size to the button width between rings.
+- Size settings-panel table columns to their contents and stretch the final column to fill remaining list width, including after filtering and resizing.
+- Parent the trigger-mode button group to the settings dialog so garbage collection cannot invalidate the Press / Hover radio buttons after startup. Clamp command-label fonts to at least one pixel so tightly spaced labels cannot generate a zero-pixel font.
+- Move the preferences dialog, icon picker, and shortcut editor layouts into Qt Designer `.ui` forms under `Resources/ui`. Python retains signal handlers, saved settings, context-condition editors, and generated pie-menu buttons. The form loader registers custom shortcut fields and preserves existing translation contexts. See the [UI editing guide](Resources/ui/README.md) for layout changes and runtime bindings.
+- Add an Icon Spacing section below Shape with independent Packed / Equally spaced radio buttons for the Inner Ring and Outer Ring. Both default to native equal spacing, with per-menu choices saved and inherited by new menus. Inner packing also works without an outer ring.
+- Reuse the settings dialog and skip duplicate startup before rebuilding its UI, preventing the event filter from accessing deleted settings tabs. The dialog and filter now belong to the main window.
+- Add mutually exclusive Inner / Outer checkbox columns to the Tools tab, saving ring assignments per menu. Pie menus display assigned outer commands in a second ring with a gap of 60% of the rendered icon size. Command names and preselect buttons are disabled for this layout; ring assignment replaces the outer-ring toggle and first-circle count input for Pie shapes.
+- Add a built-in center settings button using the PieMenu logo: it replaces the close ring on menus other than View when no accept/cancel controls or feature inputs occupy the center. Clicking it closes the pie and opens settings with that menu selected. The View menu retains its existing center behavior and never shows the settings icon.
+- Move the "PieMenu" entry from the "Accessories" menu to the bottom of the "Edit" menu, behind a separator: added the `PieMenu_Settings` FreeCAD command (`PieMenuSettingsCommand`, `MenuText` now simply "PieMenu", `Activated()` calls `onControl()`) and `PieMenuWorkbenchManipulator.modifyMenuBar()`, which returns `{"append": "Separator", "menuItem": "Std_DlgPreferences"}` followed by `{"append": "PieMenu_Settings", "menuItem": "Std_DlgPreferences"}`. `addEditMenuEntry()` (reached from the existing 500 ms `QTimer`) registers them with `Gui.addCommand()` and `Gui.addWorkbenchManipulator()` (guarded by `getattr(Gui, "PieMenuWorkbenchManipulator", None)`), then calls `Gui.activeWorkbench().reloadActive()` so the entry shows without restarting. Removed `addAccessoriesMenu()` / `accessoriesMenu()`; the `AccesoriesMenu` translation context is kept so existing translations still resolve.
+- Remove the dedicated "View" pie shortcut hook: deleted `viewPieName` / `viewPieShortcut` / `defaultGlobalShortcut`, the start-up fallback that rewrote `GlobalShortcutKey` to `TAB` when it collided, the `PieMenuShortCutView` `QAction`, and the "Shortcut reserved for the View pie menu !" branch in `updateGlobalShortcutKey()`.
+- Rework per-pie shortcut binding in `getShortcutList()`: each entry now carries the pie's `DefaultWorkbench`, shortcuts are grouped per key in configuration order, and exactly one `QShortcut` is created per key (several `QShortcut`s on the same sequence make Qt cycle between them, alternating which menu opens). The reserved set now holds only the global shortcut, empty keys are skipped, and when a key is shared by several pies that *all* declare a workbench association the handler dispatches on `Gui.activeWorkbench().name()` (like the global shortcut) instead of always taking the first pie. Deleted the unused Qt5 variant of `getShortcutList()`.
+- New pies inherit the "PieMenu" tab settings of the previously created menu: added the `defaultPieTabKeys` tuple (`(name, type, fallback)`, now also covering `IconSpacing`, `DisplayCommand`, `DisplayShorcut` with a `None` fallback that leaves the key unset), `getLastCreatedTabSettings()` (reads `main/LastCreatedPie` via `GetContents()` / `GetInt()` / `GetString()` / `GetBool()`), and `setDefaultValues(group, sourceSettings=None)`. `createPie()` reads the source settings *before* registering the new index (so a recycled index is never mistaken for the source) and stores the new index in `main/LastCreatedPie`, skipped for `restore_default_pie`.
+- Stop creating the hidden `PieMenuTB` toolbar: `onButtonAddSeparator()` no longer writes `Name = PieMenuTB` and `PieMenu_Separator = FreeCAD` into `User parameter:BaseApp/Workbench/Global/Toolbar/Custom_PieMenu` (the block is left commented as a reference) and an existing `PieMenuTB` is untouched (it stays hidden). The workbench reload is gone too, because the separator command is now backed by a plain action (see below).
+- Fix the "Add separator" button: FreeCAD only materialises a command's `QAction` once the command is added to a menu or a toolbar, so dropping the hidden `PieMenuTB` toolbar left `PieMenu_Separator` without an action and `getGuiActionMapAll()` (which keys actions by `objectName()`) could no longer resolve the stored ids. `registerSeparatorAction()`, called once from `pieMenuStart()`, now creates a plain `QAction` on the main window (`objectName` `PieMenu_Separator`, text `translate('PieMenuTab', 'Separator')`, `resources.iconAddSeparator`, disabled like the command's `IsActive()`); an action still created by a leftover `PieMenuTB` toolbar is found with `findChild()` and reused. `onButtonAddSeparator()` only hides a leftover `PieMenuTB` and appends the id through the new `appendCommandToPieList()` helper, and the unused local code that shadowed `toolList` was removed.
+- New "Add shortcut" pie entry (button between "Add separator" and "Remove selected command"): a shortcut entry is a pie button that replays a keyboard shortcut. Entries are stored globally under `User parameter:BaseApp/PieMenu/Shortcuts` (`NextId`, `EntryList` holding the ".,."-joined entry numbers as the source of truth, and an `Entry_<n>` group with `Name` / `Icon` / `Key`) and registered at start-up by `registerShortcutEntryActions()` as plain `QAction`s (`objectName` `PieMenu_ShortcutEntry_<n>`, non-null icon required because `getGuiActionMapAll()` drops actions without one) so the existing pie resolution needs no change. `onButtonAddShortcut()` opens `showShortcutEntryDialog()` (name, icon and key sequence; Validate rejects an empty or invalid sequence and the shared conflict warning is shown inside the dialog), which in create mode also appends the id to the current pie's `ToolList`; the entry selected in the action list can be edited in place. Triggering goes through `triggerShortcutEntry()` → `runShortcutSequence()`: an enabled `QAction` bound to the same key wins, otherwise `sendKeySequenceEvents()` replays the sequence chord by chord (50 ms apart) on the focused widget, handling both Qt5 (`int` key combination) and Qt6 (`QKeyCombination`). Shortcut entries display their key in the action list's "Shortcut" column (`buttonList()`) while still consuming a tool-shortcut letter, `getShortcutEntryKey()` / `formatKeySequence()` provide the text, and `getAssignedShortcut()` reports the stored keys so `compareAndDisplayWarning()` flags collisions. The icon picker is reused through the shared `iconPickerTarget` state, which also fixes the duplicated icon buttons when the picker is reopened.
+- Bump the version to 1.14 (`PIE_MENU_VERSION` in `InitGui.py`, `package.xml` `1.14` / `2026-10-15` date field).
+
 ## 1.13
 - Refactor monolithic code https://github.com/Grubuntu/PieMenu/pull/137 (Ben-PH)
 
@@ -218,16 +241,18 @@ Fix issue https://github.com/Grubuntu/PieMenu/issues/83 and some warnings about 
 - Set default theme (Legacy) on a new installation
 - Update stylesheets for #styleButtonMenu::menu-indicator (setting for QuickMenu)
 
+## Manual installation reference
 
+FreeCAD's module installation path depends on the operating system and profile. To locate the user's application data directory, enter this command in FreeCAD's Python console:
 
+```python
+App.getUserAppDataDir()
+```
 
+Place the PieMenu folder inside the `Mod` directory. Example paths to its startup file:
 
-  
-
-
-
-
-
-
-
-
+| Platform | Example path |
+| --- | --- |
+| Linux | `/home/user/.local/share/FreeCAD/Mod/PieMenu/InitGui.py` |
+| macOS | `/Users/user_name/Library/Preferences/FreeCAD/Mod/PieMenu/InitGui.py` |
+| Windows | `C:\Users\user_name\AppData\Roaming\FreeCAD\Mod\PieMenu\InitGui.py` |
